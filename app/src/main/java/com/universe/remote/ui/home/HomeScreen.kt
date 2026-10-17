@@ -29,6 +29,9 @@ import com.universe.remote.ui.components.GrainBackground
 import com.universe.remote.ui.components.Label
 import com.universe.remote.ui.components.Pill
 import com.universe.remote.ui.theme.AppTheme
+import com.universe.remote.ui.nowplaying.MiniPlayer
+import com.universe.remote.ui.nowplaying.NowPlayingScreen
+import com.universe.remote.ui.nowplaying.NowPlayingViewModel
 import androidx.compose.ui.window.Popup
 
 private enum class Tab(val title: String) {
@@ -36,18 +39,22 @@ private enum class Tab(val title: String) {
 }
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, openRemote: () -> Unit, logout: () -> Unit) {
+fun HomeScreen(viewModel: HomeViewModel, nowPlaying: NowPlayingViewModel,
+    openRemote: () -> Unit, logout: () -> Unit) {
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle()
     val playbackError by viewModel.playbackError.collectAsStateWithLifecycle()
+    val track by nowPlaying.playback.collectAsStateWithLifecycle()
     var tab by remember { mutableStateOf(Tab.HOME) }
     var notice by remember { mutableStateOf<String?>(null) }
     var avatarMenu by remember { mutableStateOf(false) }
+    var nowPlayingOpen by remember { mutableStateOf(false) }
 
     GrainBackground(Modifier.fillMaxSize()) {
         if (tab == Tab.HOME) {
             LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(),
-                contentPadding = PaddingValues(bottom = AppTheme.navInset),
+                contentPadding = PaddingValues(bottom = AppTheme.navInset +
+                    if (track.uri.isNotEmpty()) AppTheme.miniHeight + AppTheme.miniGap else 0.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 item { HomeTopBar(onNotification = { notice = "No notifications yet." },
                     onAvatar = { avatarMenu = !avatarMenu }, avatarMenu = avatarMenu,
@@ -81,7 +88,13 @@ fun HomeScreen(viewModel: HomeViewModel, openRemote: () -> Unit, logout: () -> U
         }
         FloatingNav(tab, onTab = { tab = it }, Modifier.align(Alignment.BottomCenter).safeDrawingPadding()
             .padding(bottom = AppTheme.navBottom))
+        if (track.uri.isNotEmpty()) MiniPlayer(track, nowPlaying, onOpen = { nowPlayingOpen = true },
+            modifier = Modifier.align(Alignment.BottomCenter).safeDrawingPadding()
+                .padding(horizontal = AppTheme.page)
+                .padding(bottom = AppTheme.navBottom + AppTheme.navHeight + AppTheme.miniGap)
+                .fillMaxWidth())
         HomeGrainOverlay(Modifier.matchParentSize())
+        if (nowPlayingOpen) NowPlayingScreen(nowPlaying, onClose = { nowPlayingOpen = false })
     }
 }
 

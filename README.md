@@ -1,3 +1,7 @@
+# Universe — Phase 3
+
+Start with [PHASE-3.md](PHASE-3.md) for the mini player and Now Playing setup and test steps. Earlier phase notes remain below.
+
 # Universe — Phase 2b
 
 Start with [PHASE-2B.md](PHASE-2B.md) for the current Home screen setup and test instructions. The Phase 2a login notes are in [PHASE-2A.md](PHASE-2A.md); the original Phase 1 setup below is retained for reference.

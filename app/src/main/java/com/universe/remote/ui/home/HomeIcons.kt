@@ -12,6 +12,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.universe.remote.ui.theme.AppTheme
@@ -58,8 +60,9 @@ fun HomeGrainOverlay(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun HeartIcon(modifier: Modifier = Modifier) {
-    Box(modifier.size(AppTheme.heartWidth).drawWithCache {
+fun HeartIcon(modifier: Modifier = Modifier, color: Color = AppTheme.lime,
+    filled: Boolean = true, iconSize: Dp = AppTheme.heartWidth) {
+    Box(modifier.size(iconSize).drawWithCache {
         val path = Path().apply {
             moveTo(size.width * .5f, size.height * .9f)
             cubicTo(size.width * .2f, size.height * .68f, 0f, size.height * .48f,
@@ -72,7 +75,10 @@ fun HeartIcon(modifier: Modifier = Modifier) {
                 size.width * .5f, size.height * .9f)
             close()
         }
-        onDrawBehind { drawPath(path, AppTheme.lime) }
+        val outline = Stroke(AppTheme.iconStroke.toPx())
+        onDrawBehind {
+            if (filled) drawPath(path, color) else drawPath(path, color, style = outline)
+        }
     })
 }
 
@@ -99,21 +105,21 @@ fun BellIcon(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ShuffleIcon(modifier: Modifier = Modifier) {
+fun ShuffleIcon(modifier: Modifier = Modifier, color: Color = AppTheme.foreground) {
     Canvas(modifier.size(AppTheme.shuffleGlyph)) {
         val w = size.width
         val h = size.height
         val stroke = AppTheme.shuffleStroke.toPx()
-        drawLine(AppTheme.foreground, Offset(w * .1f, h * .24f), Offset(w * .28f, h * .24f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .28f, h * .24f), Offset(w * .72f, h * .76f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .72f, h * .76f), Offset(w * .9f, h * .76f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .1f, h * .76f), Offset(w * .28f, h * .76f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .28f, h * .76f), Offset(w * .72f, h * .24f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .72f, h * .24f), Offset(w * .9f, h * .24f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .78f, h * .11f), Offset(w * .9f, h * .24f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .78f, h * .37f), Offset(w * .9f, h * .24f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .78f, h * .63f), Offset(w * .9f, h * .76f), stroke)
-        drawLine(AppTheme.foreground, Offset(w * .78f, h * .89f), Offset(w * .9f, h * .76f), stroke)
+        drawLine(color, Offset(w * .1f, h * .24f), Offset(w * .28f, h * .24f), stroke)
+        drawLine(color, Offset(w * .28f, h * .24f), Offset(w * .72f, h * .76f), stroke)
+        drawLine(color, Offset(w * .72f, h * .76f), Offset(w * .9f, h * .76f), stroke)
+        drawLine(color, Offset(w * .1f, h * .76f), Offset(w * .28f, h * .76f), stroke)
+        drawLine(color, Offset(w * .28f, h * .76f), Offset(w * .72f, h * .24f), stroke)
+        drawLine(color, Offset(w * .72f, h * .24f), Offset(w * .9f, h * .24f), stroke)
+        drawLine(color, Offset(w * .78f, h * .11f), Offset(w * .9f, h * .24f), stroke)
+        drawLine(color, Offset(w * .78f, h * .37f), Offset(w * .9f, h * .24f), stroke)
+        drawLine(color, Offset(w * .78f, h * .63f), Offset(w * .9f, h * .76f), stroke)
+        drawLine(color, Offset(w * .78f, h * .89f), Offset(w * .9f, h * .76f), stroke)
     }
 }
 

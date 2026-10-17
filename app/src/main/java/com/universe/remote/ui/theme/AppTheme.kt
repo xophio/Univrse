@@ -48,6 +48,8 @@ object AppTheme {
     val body = TextStyle(fontFamily = bodyFont, fontSize = 15.sp, lineHeight = 22.sp, color = foreground)
     val caption = TextStyle(fontFamily = bodyFont, fontSize = 12.sp, lineHeight = 18.sp, color = muted)
     val eyebrow = TextStyle(fontFamily = pixelFont, fontSize = 11.sp, color = lime)
+    val nowTitle = TextStyle(fontFamily = bodyFont, fontSize = 25.sp, color = foreground)
+    val time = TextStyle(fontFamily = pixelFont, fontSize = 10.sp, color = muted)
     val tiny = 4.dp
     val small = 8.dp
     val medium = 12.dp
@@ -74,6 +76,20 @@ object AppTheme {
     val navHeight = 60.dp
     val navBottom = 18.dp
     val navInset = 108.dp
+    val miniHeight = 70.dp
+    val miniCover = 48.dp
+    val miniGap = 12.dp
+    val miniProgress = 2.dp
+    val nowCoverMax = 320.dp
+    val nowControl = 48.dp
+    val nowPlayControl = 64.dp
+    val nowHeart = 32.dp
+    val nowArtRadius = 18.dp
+    val scrubberHeight = 32.dp
+    val scrubberTrack = 4.dp
+    val scrubberThumb = 7.dp
+    val nowPlanet = 58.dp
+    val nowDismissDistance = 90.dp
     val iconButton = 48.dp
     val avatar = 46.dp
     val menuWidth = 172.dp
@@ -91,4 +107,5 @@ object AppTheme {
     const val disabledAlpha = 0.4f
     const val grainAlpha = 0.035f
     const val homeGrainAlpha = 0.025f
+    const val coverToneBlend = 0.35f
 }

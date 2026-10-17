@@ -18,6 +18,7 @@ import com.universe.remote.ui.weblogin.WebLoginScreen
 import com.universe.remote.ui.weblogin.WebLoginViewModel
 import com.universe.remote.ui.home.HomeScreen
 import com.universe.remote.ui.home.HomeViewModel
+import com.universe.remote.ui.nowplaying.NowPlayingViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: ConnectionViewModel by viewModels()
     private val webViewModel: WebLoginViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
+    private val nowPlayingViewModel: NowPlayingViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -36,7 +38,7 @@ class MainActivity : ComponentActivity() {
             NavHost(navController, startDestination = "home") {
                 composable("home") {
                     val loggedIn by webViewModel.loggedIn.collectAsStateWithLifecycle()
-                    if (loggedIn) HomeScreen(homeViewModel,
+                    if (loggedIn) HomeScreen(homeViewModel, nowPlayingViewModel,
                         openRemote = { navController.navigate("connection") }, logout = webViewModel::logout)
                     else WebLoginScreen(this@MainActivity, webViewModel)
                 }

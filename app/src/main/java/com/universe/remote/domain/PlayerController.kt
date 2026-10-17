@@ -12,10 +12,17 @@ data class PlaybackState(
     val canSeek: Boolean = false, val canNext: Boolean = false, val canPrevious: Boolean = false,
     val canShuffle: Boolean = false, val canRepeatTrack: Boolean = false, val canRepeatContext: Boolean = false,
 )
+data class TrackLibraryState(
+    val uri: String = "",
+    val liked: Boolean? = null,
+    val canChange: Boolean = false,
+    val busy: Boolean = false,
+)
 interface PlayerController {
     val playback: StateFlow<PlaybackState>
     val onDemand: StateFlow<Boolean?>
     val error: StateFlow<String?>
+    val libraryState: StateFlow<TrackLibraryState>
     fun play(uri: String)
     fun pause()
     fun resume()
@@ -24,4 +31,5 @@ interface PlayerController {
     fun seek(positionMs: Long)
     fun shuffle(enabled: Boolean)
     fun repeat(mode: RepeatMode)
+    fun toggleLike()
 }

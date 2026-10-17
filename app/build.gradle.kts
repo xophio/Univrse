@@ -34,6 +34,7 @@ android {
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
+    implementation("androidx.palette:palette:1.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.spotify.android:auth:5.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
