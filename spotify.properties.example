@@ -1,0 +1,2 @@
+clientId=PASTE_SPOTIFY_CLIENT_ID_HERE
+redirectUri=universe-remote://callback
