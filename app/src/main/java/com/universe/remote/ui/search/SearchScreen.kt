@@ -79,10 +79,8 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
     BackHandler(onBack = onClose)
     Box(Modifier.fillMaxSize().background(AppTheme.background)) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            Row(Modifier.fillMaxWidth().padding(
-                horizontal = AppTheme.searchEdgePadding,
-                vertical = AppTheme.page,
-            ),
+            Row(Modifier.fillMaxWidth().height(AppTheme.searchHeaderHeight)
+                .padding(horizontal = AppTheme.searchEdgePadding),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppTheme.medium)) {
                 Box(Modifier.size(AppTheme.touch)
@@ -127,7 +125,7 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
             LazyColumn(Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = AppTheme.searchEdgePadding,
                     end = AppTheme.searchEdgePadding,
-                    top = AppTheme.large, bottom = AppTheme.navInset),
+                    top = AppTheme.searchSectionTopPadding, bottom = AppTheme.navInset),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.small)) {
                 if (playbackError != null) item { Label(playbackError!!, AppTheme.caption.copy(color = AppTheme.error)) }
                 when (val value = results) {
@@ -175,13 +173,13 @@ private fun RecentSearchSection(
         verticalArrangement = Arrangement.spacedBy(AppTheme.small),
     ) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = AppTheme.touch),
+            Modifier.fillMaxWidth().height(AppTheme.searchHistoryHeaderHeight),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Label("RECENT SEARCHES", AppTheme.eyebrow, Modifier.weight(1f))
             if (recent.isNotEmpty()) {
                 Box(
-                    Modifier.heightIn(min = AppTheme.touch)
+                    Modifier.fillMaxHeight()
                         .clickable(role = Role.Button, onClickLabel = "Clear recent searches",
                             onClick = onClear)
                         .padding(horizontal = AppTheme.small),
@@ -196,7 +194,9 @@ private fun RecentSearchSection(
                 Modifier.fillMaxWidth().clip(AppTheme.pill)
                     .background(AppTheme.surface)
                     .border(AppTheme.hairline, AppTheme.border, AppTheme.pill)
-                    .padding(horizontal = AppTheme.medium, vertical = AppTheme.large),
+                    .height(AppTheme.searchEmptyHeight)
+                    .padding(horizontal = AppTheme.medium),
+                contentAlignment = Alignment.CenterStart,
             ) {
                 Label("Search Spotify tracks to begin.", AppTheme.caption)
             }
@@ -209,7 +209,7 @@ private fun RecentSearchSection(
                         .border(AppTheme.hairline, AppTheme.border, AppTheme.pill)
                         .clickable(role = Role.Button,
                             onClickLabel = "Search again for $text") { onSelect(text) }
-                        .heightIn(min = AppTheme.searchHeight)
+                        .height(AppTheme.searchHeight)
                         .padding(horizontal = AppTheme.medium),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(AppTheme.medium),

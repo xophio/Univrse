@@ -134,8 +134,12 @@ object AppTheme {
     val tagAddIcon = 15.dp
     val tagAddStroke = 1.dp
     val noteHeight = 72.dp
-    val searchHeight = 52.dp
+    val searchHeight = 48.dp
     val searchEdgePadding = 8.dp
+    val searchHeaderHeight = 48.dp
+    val searchHistoryHeaderHeight = 40.dp
+    val searchEmptyHeight = 48.dp
+    val searchSectionTopPadding = 8.dp
     val libraryHeaderHeight = 48.dp
     val libraryControlHeight = 40.dp
     val chartHeight = 130.dp
