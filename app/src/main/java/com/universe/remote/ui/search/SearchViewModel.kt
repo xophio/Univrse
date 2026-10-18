@@ -49,13 +49,17 @@ class SearchViewModel @Inject constructor(
                 val q = text.trim()
                 if (q.isEmpty()) { _results.value = SearchResults.Idle; return@collectLatest }
                 _results.value = SearchResults.Loading
-                delay(400)
+                delay(650)
                 try { _results.value = SearchResults.Ready(library.searchTracks(q)) }
                 catch (e: Exception) {
                     if (e is CancellationException) throw e
                     _results.value = SearchResults.Failed(when (e) {
                         is java.net.UnknownHostException -> "No network connection."
-                        is retrofit2.HttpException -> "Spotify search failed (${e.code()})."
+                        is retrofit2.HttpException -> if (e.code() == 429) {
+                            e.response()?.headers()?.get("Retry-After")?.let {
+                                "Spotify search is cooling down. Try again in $it seconds."
+                            } ?: "Spotify search is cooling down. Try again shortly."
+                        } else "Spotify search failed (${e.code()})."
                         else -> "Could not search Spotify. Try again."
                     })
                 }

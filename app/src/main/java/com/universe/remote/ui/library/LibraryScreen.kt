@@ -54,7 +54,8 @@ fun LibraryScreen(playlists: Section<List<WebPlaylist>>, songs: Section<List<Web
             AppTheme.dockBottomPaddingWithPlayer else AppTheme.dockBottomPaddingWithoutPlayer),
         verticalArrangement = Arrangement.spacedBy(AppTheme.small)) {
         item {
-            Row(Modifier.fillMaxWidth().padding(horizontal = AppTheme.page, vertical = AppTheme.large),
+            Row(Modifier.fillMaxWidth().height(AppTheme.libraryHeaderHeight)
+                .padding(horizontal = AppTheme.page),
                 verticalAlignment = Alignment.CenterVertically) {
                 Label("LIBRARY", AppTheme.eyebrow, Modifier.weight(1f))
                 Box(Modifier.size(AppTheme.touch).clickable(role = Role.Button,
@@ -67,15 +68,13 @@ fun LibraryScreen(playlists: Section<List<WebPlaylist>>, songs: Section<List<Web
                 Row(Modifier.fillMaxWidth().padding(horizontal = AppTheme.page),
                     horizontalArrangement = Arrangement.spacedBy(AppTheme.small)) {
                     LibraryTab.entries.forEach { option ->
-                        Label(option.label, AppTheme.body.copy(
-                            color = if (tab == option) AppTheme.ink else AppTheme.foreground),
-                            Modifier.background(if (tab == option) AppTheme.lime else AppTheme.surface,
-                                AppTheme.pill).clickable(role = Role.Tab) {
-                                    tab = option
-                                    if (option == LibraryTab.PLAYLISTS && sort !in listOf(
-                                            LibrarySort.RECENT, LibrarySort.TITLE)) model.setSort(LibrarySort.RECENT)
-                                }
-                                .padding(horizontal = AppTheme.medium, vertical = AppTheme.small))
+                        LibraryChoice(option.label, tab == option, Modifier.weight(1f), Role.Tab) {
+                            tab = option
+                            if (option == LibraryTab.PLAYLISTS && sort !in listOf(
+                                    LibrarySort.RECENT, LibrarySort.TITLE)) {
+                                model.setSort(LibrarySort.RECENT)
+                            }
+                        }
                     }
                 }
             }
@@ -167,15 +166,43 @@ private fun PlaylistRow(playlist: WebPlaylist, onOpen: () -> Unit) {
 
 @Composable
 private fun SortChoices(current: LibrarySort, model: LibraryViewModel, options: List<LibrarySort>) {
-    LazyRow(contentPadding = PaddingValues(horizontal = AppTheme.page),
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.small)) {
-        items(options, key = { it.name }) { option ->
-            Label(option.label, AppTheme.caption.copy(
-                color = if (current == option) AppTheme.ink else AppTheme.foreground),
-                Modifier.background(if (current == option) AppTheme.lime else AppTheme.surface,
-                    AppTheme.pill).clickable(role = Role.Button) { model.setSort(option) }
-                    .padding(horizontal = AppTheme.medium, vertical = AppTheme.small))
+    if (options.size == 2) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = AppTheme.page),
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.small)) {
+            options.forEach { option ->
+                LibraryChoice(option.label, current == option, Modifier.weight(1f)) {
+                    model.setSort(option)
+                }
+            }
         }
+    } else {
+        LazyRow(contentPadding = PaddingValues(horizontal = AppTheme.page),
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.small)) {
+            items(options, key = { it.name }) { option ->
+                LibraryChoice(option.label, current == option) { model.setSort(option) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibraryChoice(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    role: Role = Role.Button,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier.height(AppTheme.libraryControlHeight)
+            .clip(AppTheme.pill)
+            .background(if (selected) AppTheme.lime else AppTheme.surface)
+            .clickable(role = role, onClick = onClick)
+            .padding(horizontal = AppTheme.medium),
+        contentAlignment = Alignment.Center,
+    ) {
+        Label(label, AppTheme.body.copy(
+            color = if (selected) AppTheme.ink else AppTheme.foreground))
     }
 }
 

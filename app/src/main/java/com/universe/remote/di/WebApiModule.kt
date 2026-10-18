@@ -1,5 +1,6 @@
 package com.universe.remote.di
 
+import android.content.Context
 import com.universe.remote.BuildConfig
 import com.universe.remote.data.auth.*
 import com.universe.remote.data.web.*
@@ -7,6 +8,7 @@ import com.universe.remote.domain.SpotifyLibraryRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -30,5 +32,7 @@ object WebApiModule {
         return Retrofit.Builder().baseUrl("https://api.spotify.com/v1/").client(client)
             .addConverterFactory(GsonConverterFactory.create()).build().create(SpotifyWebApi::class.java)
     }
-    @Provides @Singleton fun repository(api: SpotifyWebApi): SpotifyLibraryRepository = WebLibraryRepository(api)
+    @Provides @Singleton fun repository(api: SpotifyWebApi,
+        @ApplicationContext context: Context): SpotifyLibraryRepository =
+        WebLibraryRepository(api, PreferencesWebCacheStore(context))
 }

@@ -57,17 +57,25 @@ class HomeViewModel @Inject constructor(
     fun refreshPlaylists() {
         playlistJob?.cancel()
         playlistJob = viewModelScope.launch {
-            _playlists.value = Section.Loading
+            val previous = _playlists.value
+            if (previous !is Section.Ready) _playlists.value = Section.Loading
             try { _playlists.value = Section.Ready(repository.getMyPlaylists()) }
-            catch (e: Exception) { if (e is CancellationException) throw e; _playlists.value = Section.Failed(message(e)) }
+            catch (e: Exception) {
+                if (e is CancellationException) throw e
+                if (previous !is Section.Ready) _playlists.value = Section.Failed(message(e))
+            }
         }
     }
     fun refreshLikedSongs() {
         songsJob?.cancel()
         songsJob = viewModelScope.launch {
-            _likedSongs.value = Section.Loading
+            val previous = _likedSongs.value
+            if (previous !is Section.Ready) _likedSongs.value = Section.Loading
             try { _likedSongs.value = Section.Ready(repository.getLikedSongs()) }
-            catch (e: Exception) { if (e is CancellationException) throw e; _likedSongs.value = Section.Failed(message(e)) }
+            catch (e: Exception) {
+                if (e is CancellationException) throw e
+                if (previous !is Section.Ready) _likedSongs.value = Section.Failed(message(e))
+            }
         }
     }
     fun playPlaylist(playlist: WebPlaylist, shuffle: Boolean) {
@@ -88,7 +96,9 @@ class HomeViewModel @Inject constructor(
         is HttpException -> when (e.code()) {
             401 -> "Spotify session expired. Sign in again."
             403 -> "Spotify denied access to this library. Check account and app access."
-            429 -> "Spotify is rate limiting requests. Try again shortly."
+            429 -> e.response()?.headers()?.get("Retry-After")?.let {
+                "Spotify is cooling down. Try again in $it seconds."
+            } ?: "Spotify is cooling down. Try again shortly."
             else -> "Spotify returned error ${e.code()}. Tap to retry."
         }
         is java.net.UnknownHostException -> "No network connection. Tap to retry."
