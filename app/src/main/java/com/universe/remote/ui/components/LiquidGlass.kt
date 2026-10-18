@@ -29,6 +29,7 @@ val LocalLiquidGlassHaze = compositionLocalOf { HazeState() }
 fun Modifier.liquidGlass(
     shape: Shape,
     tint: Color = AppTheme.liquidGlass,
+    scrim: Color = Color.Transparent,
 ): Modifier {
     val hazeState = LocalLiquidGlassHaze.current
     val hazeStyle = HazeStyle(
@@ -73,7 +74,18 @@ fun Modifier.liquidGlass(
             is Outline.Generic -> drawPath(value.path, brush, style = style)
         }
     }
+    fun DrawScope.paintOutline(color: Color, style: DrawStyle = Fill) {
+        when (val value = outline) {
+            is Outline.Rectangle -> drawRect(color, value.rect.topLeft, value.rect.size, style = style)
+            is Outline.Rounded -> drawRoundRect(color,
+                topLeft = Offset(value.roundRect.left, value.roundRect.top),
+                size = Size(value.roundRect.width, value.roundRect.height),
+                cornerRadius = value.roundRect.topLeftCornerRadius, style = style)
+            is Outline.Generic -> drawPath(value.path, color, style = style)
+        }
+    }
     onDrawBehind {
+        if (scrim.alpha > 0f) paintOutline(scrim)
         paintOutline(topSheen)
         paintOutline(edge, stroke)
     }

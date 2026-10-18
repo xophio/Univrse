@@ -42,6 +42,7 @@ import com.universe.remote.domain.WebPlaylist
 import com.universe.remote.domain.WebTrack
 import com.universe.remote.domain.LocalTrack
 import com.universe.remote.ui.components.GrainBackground
+import com.universe.remote.ui.components.AnimatedPopup
 import com.universe.remote.ui.components.Label
 import com.universe.remote.ui.components.Pill
 import com.universe.remote.ui.components.UniverseGlyph
@@ -61,7 +62,6 @@ import com.universe.remote.ui.library.LibraryViewModel
 import com.universe.remote.ui.library.LibraryScreen
 import com.universe.remote.ui.stats.StatsViewModel
 import com.universe.remote.ui.stats.StatsScreen
-import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.chrisbanes.haze.hazeSource
@@ -219,7 +219,7 @@ private fun HomeTopBar(onNotification: () -> Unit, onAvatar: () -> Unit, avatarM
                 .clickable(role = Role.Button, onClickLabel = "Account") { onAvatar() }, contentAlignment = Alignment.Center) {
                 UniverseIcon(UniverseGlyph.PROFILE, color = AppTheme.ink)
             }
-            if (avatarMenu) Popup(alignment = Alignment.TopEnd, onDismissRequest = closeAvatar) {
+            AnimatedPopup(visible = avatarMenu, onDismissRequest = closeAvatar) {
                 Column(Modifier.width(AppTheme.menuWidth).liquidGlass(AppTheme.card)
                     .padding(AppTheme.small)) {
                     MenuAction("Playback controls") { closeAvatar(); openRemote() }
@@ -334,7 +334,7 @@ private fun LikedTrackRow(track: WebTrack, mood: MoodViewModel, onPlay: () -> Un
                 onClickLabel = "More options for ${track.name}") { menu = true }, contentAlignment = Alignment.Center) {
                 UniverseIcon(UniverseGlyph.MORE)
             }
-            if (menu) Popup(alignment = Alignment.TopEnd, onDismissRequest = { menu = false }) {
+            AnimatedPopup(visible = menu, onDismissRequest = { menu = false }) {
                 Column(Modifier.width(AppTheme.menuWidth).liquidGlass(AppTheme.card)
                     .padding(AppTheme.small)) {
                     MenuAction("Play") { menu = false; onPlay() }

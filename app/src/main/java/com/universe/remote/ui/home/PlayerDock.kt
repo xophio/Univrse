@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +64,11 @@ internal fun PlayerDock(
     modifier: Modifier = Modifier,
 ) {
     val motion = motionEnabled()
-    Column(modifier.liquidGlass(AppTheme.dockShape)
+    Column(modifier.liquidGlass(
+        shape = AppTheme.dockShape,
+        tint = AppTheme.playerDockGlassTint,
+        scrim = AppTheme.playerDockScrim,
+    )
         .padding(horizontal = AppTheme.dockHorizontalPadding,
             vertical = AppTheme.dockVerticalPadding)) {
         if (hasTrack) {
@@ -104,9 +110,13 @@ private fun DockNavigation(selected: HomeTab, searchActive: Boolean, motion: Boo
 @Composable
 private fun DockDestination(title: String, glyph: UniverseGlyph, active: Boolean,
     motion: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
     val iconColor by animateColorAsState(if (active) AppTheme.ink else AppTheme.foreground,
         animationSpec = if (motion) tween(160) else snap(), label = "dock icon color")
-    Box(modifier.fillMaxHeight().clickable(role = Role.Tab,
+    Box(modifier.fillMaxHeight().clickable(
+        interactionSource = interactionSource,
+        indication = null,
+        role = Role.Tab,
         onClickLabel = title, onClick = onClick), contentAlignment = Alignment.Center) {
         UniverseIcon(glyph, color = iconColor)
     }
@@ -115,8 +125,16 @@ private fun DockDestination(title: String, glyph: UniverseGlyph, active: Boolean
 @Composable
 private fun DockPlayerRow(player: NowPlayingViewModel, onOpen: () -> Unit) {
     val state by player.controls.collectAsStateWithLifecycle()
+    val rowInteractionSource = remember { MutableInteractionSource() }
+    val playInteractionSource = remember { MutableInteractionSource() }
     Row(Modifier.fillMaxWidth().height(AppTheme.dockPlayerHeight)
-        .clickable(role = Role.Button, onClickLabel = "Open Now Playing", onClick = onOpen),
+        .clickable(
+            interactionSource = rowInteractionSource,
+            indication = null,
+            role = Role.Button,
+            onClickLabel = "Open Now Playing",
+            onClick = onOpen,
+        ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppTheme.medium)) {
         Box(Modifier.size(AppTheme.dockCover).clip(AppTheme.artShape)
@@ -131,7 +149,10 @@ private fun DockPlayerRow(player: NowPlayingViewModel, onOpen: () -> Unit) {
             BasicText(state.artist, style = AppTheme.caption, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Box(Modifier.size(AppTheme.iconButton).clip(CircleShape).background(AppTheme.lime)
-            .clickable(role = Role.Button,
+            .clickable(
+                interactionSource = playInteractionSource,
+                indication = null,
+                role = Role.Button,
                 onClickLabel = if (state.paused) "Play" else "Pause") { player.togglePlayback() },
             contentAlignment = Alignment.Center) {
             PlayPauseIcon(state.paused, AppTheme.ink, AppTheme.navGlyph)

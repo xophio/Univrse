@@ -51,6 +51,7 @@ import com.universe.remote.ui.components.coverRequest
 import com.universe.remote.domain.LocalTrack
 import com.universe.remote.domain.WebTrack
 import com.universe.remote.ui.components.Label
+import com.universe.remote.ui.components.AnimatedPopup
 import com.universe.remote.ui.components.UniverseGlyph
 import com.universe.remote.ui.components.UniverseIcon
 import com.universe.remote.ui.components.liquidGlass
@@ -59,7 +60,6 @@ import com.universe.remote.ui.home.HomeGrainOverlay
 import com.universe.remote.ui.mood.MoodViewModel
 import com.universe.remote.ui.mood.TagDialog
 import com.universe.remote.ui.theme.AppTheme
-import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.delay
 
 @Composable
@@ -79,7 +79,10 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
     BackHandler(onBack = onClose)
     Box(Modifier.fillMaxSize().background(AppTheme.background)) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            Row(Modifier.fillMaxWidth().padding(AppTheme.page),
+            Row(Modifier.fillMaxWidth().padding(
+                horizontal = AppTheme.searchEdgePadding,
+                vertical = AppTheme.page,
+            ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppTheme.medium)) {
                 Box(Modifier.size(AppTheme.touch)
@@ -87,7 +90,7 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
                     contentAlignment = Alignment.Center) { UniverseIcon(UniverseGlyph.CLOSE) }
                 Label("SEARCH", AppTheme.eyebrow)
             }
-            Row(Modifier.fillMaxWidth().padding(horizontal = AppTheme.page)
+            Row(Modifier.fillMaxWidth().padding(horizontal = AppTheme.searchEdgePadding)
                 .clip(AppTheme.pill).background(AppTheme.surface)
                 .border(AppTheme.hairline, focusBorder, AppTheme.pill)
                 .padding(horizontal = AppTheme.medium).heightIn(min = AppTheme.searchHeight),
@@ -122,24 +125,19 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
                 SearchLoadingLine(motion)
             }
             LazyColumn(Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = AppTheme.page, end = AppTheme.page,
+                contentPadding = PaddingValues(start = AppTheme.searchEdgePadding,
+                    end = AppTheme.searchEdgePadding,
                     top = AppTheme.large, bottom = AppTheme.navInset),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.small)) {
                 if (playbackError != null) item { Label(playbackError!!, AppTheme.caption.copy(color = AppTheme.error)) }
                 when (val value = results) {
                     SearchResults.Idle -> {
                         item {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Label("RECENT SEARCHES", AppTheme.eyebrow)
-                                if (recent.isNotEmpty()) Label("CLEAR", AppTheme.caption,
-                                    Modifier.clickable(role = Role.Button, onClick = model::clearRecent))
-                            }
-                        }
-                        if (recent.isEmpty()) item { Label("Search Spotify tracks to begin.", AppTheme.caption) }
-                        items(recent, key = { it }) { text ->
-                            Label(text, AppTheme.body, Modifier.fillMaxWidth().firstAppearance("recent:$text")
-                                .heightIn(min = AppTheme.touch)
-                                .clickable(role = Role.Button) { model.selectRecent(text) })
+                            RecentSearchSection(
+                                recent = recent,
+                                onSelect = model::selectRecent,
+                                onClear = model::clearRecent,
+                            )
                         }
                     }
                     SearchResults.Loading -> item { Label("Searching Spotify…", AppTheme.caption) }
@@ -163,6 +161,66 @@ fun SearchScreen(model: SearchViewModel, mood: MoodViewModel, onClose: () -> Uni
             }
         }
         HomeGrainOverlay(Modifier.matchParentSize())
+    }
+}
+
+@Composable
+private fun RecentSearchSection(
+    recent: List<String>,
+    onSelect: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    Column(
+        Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.small),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = AppTheme.touch),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Label("RECENT SEARCHES", AppTheme.eyebrow, Modifier.weight(1f))
+            if (recent.isNotEmpty()) {
+                Box(
+                    Modifier.heightIn(min = AppTheme.touch)
+                        .clickable(role = Role.Button, onClickLabel = "Clear recent searches",
+                            onClick = onClear)
+                        .padding(horizontal = AppTheme.small),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Label("CLEAR", AppTheme.caption)
+                }
+            }
+        }
+        if (recent.isEmpty()) {
+            Box(
+                Modifier.fillMaxWidth().clip(AppTheme.pill)
+                    .background(AppTheme.surface)
+                    .border(AppTheme.hairline, AppTheme.border, AppTheme.pill)
+                    .padding(horizontal = AppTheme.medium, vertical = AppTheme.large),
+            ) {
+                Label("Search Spotify tracks to begin.", AppTheme.caption)
+            }
+        } else {
+            recent.forEach { text ->
+                Row(
+                    Modifier.fillMaxWidth().firstAppearance("recent:$text")
+                        .clip(AppTheme.pill)
+                        .background(AppTheme.surface)
+                        .border(AppTheme.hairline, AppTheme.border, AppTheme.pill)
+                        .clickable(role = Role.Button,
+                            onClickLabel = "Search again for $text") { onSelect(text) }
+                        .heightIn(min = AppTheme.searchHeight)
+                        .padding(horizontal = AppTheme.medium),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.medium),
+                ) {
+                    UniverseIcon(UniverseGlyph.SEARCH, modifier = Modifier.size(AppTheme.navGlyph),
+                        color = AppTheme.muted)
+                    BasicText(text, style = AppTheme.body, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                }
+            }
+        }
     }
 }
 
@@ -192,7 +250,7 @@ fun CatalogTrackRow(track: WebTrack, mood: MoodViewModel, onPlay: () -> Unit, on
             Box(Modifier.size(AppTheme.touch)
                 .clickable(role = Role.Button, onClickLabel = "More options") { menu = true },
                 contentAlignment = Alignment.Center) { UniverseIcon(UniverseGlyph.MORE) }
-            if (menu) Popup(alignment = Alignment.TopEnd, onDismissRequest = { menu = false }) {
+            AnimatedPopup(visible = menu, onDismissRequest = { menu = false }) {
                 Column(Modifier.width(AppTheme.menuWidth).liquidGlass(AppTheme.card)
                     .padding(AppTheme.small)) {
                     listOf("Play" to onPlay, "Add to queue" to onQueue,

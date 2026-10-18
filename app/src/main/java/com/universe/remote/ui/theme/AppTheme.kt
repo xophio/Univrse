@@ -35,6 +35,8 @@ object AppTheme {
     val dock = Color(0xFF1F1F1D)
     val dockBorder = Color(0xFF3A3A36)
     val dockSegmentEmpty = Color(0xFF3A3A36)
+    val playerDockGlassTint = Color(0xB6151714)
+    val playerDockScrim = Color(0xB8080908)
     val shuffleSurface = Color(0xFF32352F)
     val oliveGlow = Color(0x663A4928)
     val sky = Color(0xFFB8E8F4)
@@ -133,6 +135,7 @@ object AppTheme {
     val tagAddStroke = 1.dp
     val noteHeight = 72.dp
     val searchHeight = 52.dp
+    val searchEdgePadding = 8.dp
     val chartHeight = 130.dp
     val chartShortHeight = 86.dp
     val statCardHeight = 74.dp
@@ -140,6 +143,7 @@ object AppTheme {
     val iconButton = 48.dp
     val avatar = 46.dp
     val menuWidth = 172.dp
+    val menuOpenSlide = 6.dp
     val maxWidth = 520.dp
     val hairline = 1.dp
     val glassEdgeWidth = 1.dp
@@ -168,6 +172,8 @@ object AppTheme {
     const val searchRowMs = 260
     const val searchRowStaggerMs = 32L
     const val searchSweepMs = 900
+    const val menuOpenMs = 190
+    const val menuInitialScale = 0.84f
     val searchEntranceOffset = 14.dp
     const val coverToneBlend = 0.35f
 }
