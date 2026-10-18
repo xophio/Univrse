@@ -16,10 +16,14 @@ class WebLibraryRepositoryTest {
             override suspend fun playlistTracks(id: String, offset: Int, limit: Int) = Page<TrackItemDto>(emptyList(), null)
             override suspend fun liked(offset: Int, limit: Int) = Page(listOf(TrackItemDto(null),
                 TrackItemDto(TrackDto("t", "spotify:track:t", "Song", listOf(ArtistDto("Artist")), "track"))), null)
+            override suspend fun search(query: String, type: String, limit: Int) =
+                SearchDto(Page(listOf(TrackDto("t", "spotify:track:t", "Song",
+                    listOf(ArtistDto("Artist")), "track")), null))
         }
         val repository = WebLibraryRepository(api)
         assertEquals(listOf("First", "Second"), repository.getMyPlaylists().map { it.name })
         assertEquals(listOf(0, 2), offsets)
         assertEquals(listOf("Song"), repository.getLikedSongs().map { it.name })
+        assertEquals(listOf("Song"), repository.searchTracks("Song").map { it.name })
     }
 }

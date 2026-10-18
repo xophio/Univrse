@@ -53,8 +53,8 @@ import kotlin.math.roundToLong
 import kotlin.math.abs
 
 @Composable
-fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit) {
-    val state by viewModel.playback.collectAsStateWithLifecycle()
+fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val state by viewModel.controls.collectAsStateWithLifecycle()
     val cover by viewModel.artwork.collectAsStateWithLifecycle()
     val tone by viewModel.coverTone.collectAsStateWithLifecycle()
     val connection by viewModel.connection.collectAsStateWithLifecycle()
@@ -62,7 +62,7 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit) {
     val context = LocalContext.current
     val background = remember(tone) { Brush.verticalGradient(listOf(tone, AppTheme.background, AppTheme.background)) }
     BackHandler(onBack = onClose)
-    Box(Modifier.fillMaxSize().background(background).pointerInput(onClose) {
+    Box(modifier.fillMaxSize().background(background).pointerInput(onClose) {
         val threshold = AppTheme.nowDismissDistance.toPx()
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
@@ -95,9 +95,10 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit) {
                 Label(connection.message, AppTheme.caption)
             } else {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Box(Modifier.fillMaxWidth().widthIn(max = AppTheme.nowCoverMax).aspectRatio(1f)
+                    Box(Modifier.widthIn(max = AppTheme.nowCoverMax).fillMaxWidth().aspectRatio(1f)
                         .clip(AppTheme.card).background(AppTheme.surface), contentAlignment = Alignment.Center) {
-                        if (cover == null) Label("♫", AppTheme.title)
+                        if (cover == null) com.universe.remote.ui.components.UniverseIcon(
+                            com.universe.remote.ui.components.UniverseGlyph.MUSIC, size = AppTheme.nowHeart)
                         else Image(cover!!.asImageBitmap(), contentDescription = "Cover for ${state.title}",
                             modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                     }
@@ -141,7 +142,7 @@ private fun TrackHeading(state: PlaybackState, viewModel: NowPlayingViewModel) {
             .clickable(enabled = current?.canChange == true && current.busy.not(), role = Role.Button,
                 onClickLabel = if (liked) "Unlike song" else "Like song") { viewModel.toggleLike() },
             contentAlignment = Alignment.Center) {
-            HeartIcon(color = if (liked) AppTheme.lime else AppTheme.muted,
+            HeartIcon(color = if (liked) AppTheme.lime else AppTheme.foreground,
                 filled = liked, iconSize = AppTheme.nowHeart)
         }
     }

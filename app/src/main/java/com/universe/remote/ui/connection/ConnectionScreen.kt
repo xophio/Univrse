@@ -69,7 +69,7 @@ fun ConnectionScreen(viewModel: ConnectionViewModel) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.medium)) {
                 Box(Modifier.size(AppTheme.cover).clip(AppTheme.artShape).background(AppTheme.surface), contentAlignment = Alignment.Center) {
                     if (bitmap != null) Image(bitmap, "Album artwork", Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-                    else Label("♫", AppTheme.headline)
+                    else UniverseIcon(UniverseGlyph.MUSIC)
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AppTheme.tiny)) {
                     Label(player.title)

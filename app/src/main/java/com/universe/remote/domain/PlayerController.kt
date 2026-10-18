@@ -1,17 +1,22 @@
 package com.universe.remote.domain
 
 import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.runtime.Immutable
 
 enum class ConnectionStatus { DISCONNECTED, CONNECTING, CONNECTED, SETUP_REQUIRED, NOT_INSTALLED, LOGIN_REQUIRED, AUTH_REQUIRED, ERROR }
+@Immutable
 data class ConnectionState(val status: ConnectionStatus = ConnectionStatus.DISCONNECTED, val message: String = "Spotify is disconnected")
 enum class RepeatMode(val sdkValue: Int) { OFF(0), TRACK(1), CONTEXT(2) }
+@Immutable
 data class PlaybackState(
     val uri: String = "", val title: String = "Nothing playing yet", val artist: String = "Connect to Spotify to begin",
+    val album: String = "", val coverUrl: String? = null,
     val paused: Boolean = true, val positionMs: Long = 0, val durationMs: Long = 0,
     val shuffle: Boolean = false, val repeat: RepeatMode = RepeatMode.OFF,
     val canSeek: Boolean = false, val canNext: Boolean = false, val canPrevious: Boolean = false,
     val canShuffle: Boolean = false, val canRepeatTrack: Boolean = false, val canRepeatContext: Boolean = false,
 )
+@Immutable
 data class TrackLibraryState(
     val uri: String = "",
     val liked: Boolean? = null,
@@ -24,6 +29,8 @@ interface PlayerController {
     val error: StateFlow<String?>
     val libraryState: StateFlow<TrackLibraryState>
     fun play(uri: String)
+    fun playOrdered(uris: List<String>)
+    fun queue(uri: String)
     fun pause()
     fun resume()
     fun next()

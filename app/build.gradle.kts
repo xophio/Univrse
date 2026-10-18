@@ -7,6 +7,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 val spotify = Properties().apply {
     rootProject.file("spotify.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
@@ -27,6 +28,17 @@ android {
         buildConfigField("String", "SPOTIFY_REDIRECT_URI", quoted(spotify.getProperty("redirectUri", "universe-remote://callback")))
     }
     buildFeatures { compose = true; buildConfig = true }
+    buildTypes {
+        create("performance") {
+            initWith(getByName("release"))
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -34,8 +46,12 @@ android {
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
+    implementation("androidx.room:room-runtime:2.8.5")
+    implementation("androidx.room:room-ktx:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
     implementation("androidx.palette:palette:1.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("dev.chrisbanes.haze:haze:1.7.3")
     implementation("com.spotify.android:auth:5.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
@@ -56,4 +72,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("com.google.dagger:hilt-android:2.59.2")
     ksp("com.google.dagger:hilt-compiler:2.59.2")
+}
+
+composeCompiler {
+    reportsDestination = layout.buildDirectory.dir("compose-reports")
+    metricsDestination = layout.buildDirectory.dir("compose-metrics")
 }

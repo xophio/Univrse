@@ -17,6 +17,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -26,6 +30,11 @@ class NowPlayingViewModel @Inject constructor(
     manager: SpotifyConnectionManager,
 ) : ViewModel() {
     val playback = player.playback
+    // Position is collected separately by the scrubber/progress line.
+    val controls = playback.map { it.copy(positionMs = 0) }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), playback.value.copy(positionMs = 0))
+    val hasTrack = playback.map { it.uri.isNotEmpty() }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), playback.value.uri.isNotEmpty())
     val libraryState = player.libraryState
     val artwork = manager.artwork
     val connection = manager.connection

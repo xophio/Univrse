@@ -19,6 +19,10 @@ import com.universe.remote.ui.weblogin.WebLoginViewModel
 import com.universe.remote.ui.home.HomeScreen
 import com.universe.remote.ui.home.HomeViewModel
 import com.universe.remote.ui.nowplaying.NowPlayingViewModel
+import com.universe.remote.ui.mood.MoodViewModel
+import com.universe.remote.ui.search.SearchViewModel
+import com.universe.remote.ui.library.LibraryViewModel
+import com.universe.remote.ui.stats.StatsViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 
@@ -29,6 +33,10 @@ class MainActivity : ComponentActivity() {
     private val webViewModel: WebLoginViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
     private val nowPlayingViewModel: NowPlayingViewModel by viewModels()
+    private val moodViewModel: MoodViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val libraryViewModel: LibraryViewModel by viewModels()
+    private val statsViewModel: StatsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -38,7 +46,8 @@ class MainActivity : ComponentActivity() {
             NavHost(navController, startDestination = "home") {
                 composable("home") {
                     val loggedIn by webViewModel.loggedIn.collectAsStateWithLifecycle()
-                    if (loggedIn) HomeScreen(homeViewModel, nowPlayingViewModel,
+                    if (loggedIn) HomeScreen(homeViewModel, nowPlayingViewModel, moodViewModel,
+                        searchViewModel, libraryViewModel, statsViewModel,
                         openRemote = { navController.navigate("connection") }, logout = webViewModel::logout)
                     else WebLoginScreen(this@MainActivity, webViewModel)
                 }

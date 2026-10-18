@@ -3,6 +3,7 @@ package com.universe.remote.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.universe.remote.data.auth.TokenManager
+import com.universe.remote.data.local.PlaybackSourceTracker
 import com.universe.remote.domain.PlayerController
 import com.universe.remote.domain.SpotifyLibraryRepository
 import com.universe.remote.domain.WebPlaylist
@@ -28,6 +29,7 @@ class HomeViewModel @Inject constructor(
     private val repository: SpotifyLibraryRepository,
     private val player: PlayerController,
     private val tokens: TokenManager,
+    private val sources: PlaybackSourceTracker,
 ) : ViewModel() {
     private val _playlists = MutableStateFlow<Section<List<WebPlaylist>>>(Section.Loading)
     val playlists = _playlists.asStateFlow()
@@ -69,10 +71,18 @@ class HomeViewModel @Inject constructor(
         }
     }
     fun playPlaylist(playlist: WebPlaylist, shuffle: Boolean) {
-        if (shuffle) player.shuffle(true)
+        sources.mark("playlist")
+        player.shuffle(shuffle)
         player.play("spotify:playlist:${playlist.id}")
     }
-    fun playTrack(track: WebTrack) { track.uri?.let(player::play) }
+    fun playTrack(track: WebTrack) {
+        val uri = track.uri ?: return
+        val songs = (_likedSongs.value as? Section.Ready)?.value.orEmpty()
+        val index = songs.indexOfFirst { it.uri == uri }
+        val sequence = if (index >= 0) songs.drop(index).mapNotNull(WebTrack::uri) else listOf(uri)
+        sources.mark("liked", uri)
+        player.playOrdered(sequence)
+    }
 
     private fun message(e: Exception) = when (e) {
         is HttpException -> when (e.code()) {

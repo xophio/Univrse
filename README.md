@@ -1,3 +1,11 @@
+# Universe — Phase 5
+
+Start with [PHASE-5.md](PHASE-5.md) for Search, Library, and Stats setup and test steps.
+
+# Universe — Phase 4
+
+Start with [PHASE-4.md](PHASE-4.md) for local play logging, mood tags, notes, and the temporary history screen.
+
 # Universe — Phase 3
 
 Start with [PHASE-3.md](PHASE-3.md) for the mini player and Now Playing setup and test steps. Earlier phase notes remain below.
