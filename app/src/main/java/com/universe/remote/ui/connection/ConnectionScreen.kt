@@ -44,7 +44,7 @@ fun ConnectionScreen(viewModel: ConnectionViewModel) {
         Column(Modifier.align(Alignment.TopCenter).widthIn(max = AppTheme.maxWidth)
             .fillMaxWidth().safeDrawingPadding().verticalScroll(rememberScrollState())
             .padding(AppTheme.page), verticalArrangement = Arrangement.spacedBy(AppTheme.large)) {
-            Label("Universe", AppTheme.title)
+            Label("Universe", AppTheme.universeTitle)
             Label("YOUR MUSIC. YOUR ORBIT.", AppTheme.eyebrow)
             Spacer(Modifier.height(AppTheme.small))
             Label("Welcome to your\nlistening universe.", AppTheme.headline)
