@@ -132,7 +132,10 @@ object AppTheme {
     val lyricsSheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     val lyricsHandleWidth = 38.dp
     val lyricsHandleHeight = 4.dp
-    val lyricsLineSpacing = 18.dp
+    val lyricsLineSpacing = 12.dp
+    val lyricsViewportPadding = 88.dp
+    val lyricsIndicatorWidth = 3.dp
+    val lyricsIndicatorHeight = 30.dp
     val lyricsCreditBottom = 10.dp
     val lyricsCurrent = TextStyle(fontFamily = bodyFont, fontWeight = FontWeight.Bold,
         fontSize = 22.sp, lineHeight = 28.sp, color = lime)
@@ -194,6 +197,8 @@ object AppTheme {
     const val lyricsLineTransitionMs = 360
     const val lyricsSyncLeadMs = 90L
     const val playerPositionTickMs = 80L
+    const val lyricsActiveFontSp = 20f
+    const val lyricsIdleFontSp = 16f
     val searchEntranceOffset = 14.dp
     const val coverToneBlend = 0.35f
 }

@@ -14,6 +14,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +26,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -40,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
@@ -72,7 +75,9 @@ internal fun LyricsOverlay(
                 .then(if (fullScreen) Modifier.fillMaxHeight() else Modifier.fillMaxHeight(AppTheme.lyricsPanelFraction))
                 .clip(if (fullScreen) RectangleShape else AppTheme.lyricsSheet)
                 .background(AppTheme.navSolid)
-                .safeDrawingPadding()
+                .border(AppTheme.hairline, AppTheme.border, if (fullScreen) RectangleShape else AppTheme.lyricsSheet)
+                .then(if (fullScreen) Modifier.statusBarsPadding() else Modifier)
+                .navigationBarsPadding()
                 .padding(horizontal = AppTheme.page)
           ) {
             Spacer(Modifier.height(AppTheme.small))
@@ -102,11 +107,10 @@ internal fun LyricsOverlay(
             }
             Spacer(Modifier.height(AppTheme.small))
             LyricsContent(viewModel, Modifier.weight(1f))
-            Label(
-                "Lyrics by LRCLIB",
-                AppTheme.time,
-                Modifier.fillMaxWidth().padding(bottom = AppTheme.lyricsCreditBottom),
-            )
+            Box(Modifier.fillMaxWidth().background(AppTheme.navSolid)
+                .padding(top = AppTheme.small, bottom = AppTheme.lyricsCreditBottom)) {
+                Label("Lyrics by LRCLIB", AppTheme.time)
+            }
           }
         }
     }
@@ -176,7 +180,10 @@ private fun LyricsDocumentView(
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         state = listState,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = AppTheme.large),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            top = AppTheme.lyricsViewportPadding,
+            bottom = AppTheme.lyricsViewportPadding,
+        ),
         verticalArrangement = Arrangement.spacedBy(AppTheme.lyricsLineSpacing),
     ) {
         itemsIndexed(document.lines, key = { index, line -> "${line.timeMs}:$index" }) { index, line ->
@@ -188,42 +195,60 @@ private fun LyricsDocumentView(
             ) else snap()
             val colorSpec = if (motion) tween<androidx.compose.ui.graphics.Color>(AppTheme.lyricsLineTransitionMs) else snap()
             val color by animateColorAsState(
-                targetValue = when { active -> AppTheme.lime; past -> AppTheme.muted.copy(alpha = .38f); else -> AppTheme.muted },
+                targetValue = when {
+                    active -> AppTheme.lime
+                    past -> AppTheme.muted.copy(alpha = .58f)
+                    else -> AppTheme.muted.copy(alpha = .88f)
+                },
                 animationSpec = colorSpec,
                 label = "lyric-color",
             )
             val glow by animateColorAsState(
-                targetValue = if (active) AppTheme.lime.copy(alpha = .09f) else AppTheme.transparent,
+                targetValue = if (active) AppTheme.lime.copy(alpha = .045f) else AppTheme.transparent,
                 animationSpec = colorSpec,
                 label = "lyric-glow",
             )
-            val rim by animateColorAsState(
-                targetValue = if (active) AppTheme.lime.copy(alpha = .22f) else AppTheme.transparent,
-                animationSpec = colorSpec,
-                label = "lyric-rim",
+            val emphasis by animateFloatAsState(if (active) 1f else 0f, floatSpec, label = "lyric-emphasis")
+            val scale by animateFloatAsState(if (active) 1.012f else 1f, floatSpec, label = "lyric-scale")
+            val fontSize by animateFloatAsState(
+                if (active) AppTheme.lyricsActiveFontSp else AppTheme.lyricsIdleFontSp,
+                floatSpec,
+                label = "lyric-size",
             )
-            val scale by animateFloatAsState(if (active) 1.018f else 1f, floatSpec, label = "lyric-scale")
-            val shift by animateFloatAsState(if (active) 1f else 0f, floatSpec, label = "lyric-shift")
-            val fontSize by animateFloatAsState(if (active) 22f else 17f, floatSpec, label = "lyric-size")
-            val lineHeight by animateFloatAsState(if (active) 28f else 24f, floatSpec, label = "lyric-height")
-            val shiftPx = with(LocalDensity.current) { AppTheme.small.toPx() }
-            BasicText(
-                line.text,
-                modifier = Modifier.fillMaxWidth().graphicsLayer {
+            val lineHeight by animateFloatAsState(if (active) 27f else 23f, floatSpec, label = "lyric-height")
+            val interaction = remember { MutableInteractionSource() }
+            Row(
+                Modifier.fillMaxWidth().clip(AppTheme.card).background(glow)
+                    .clickable(
+                        interactionSource = interaction,
+                        indication = null,
+                        role = Role.Button,
+                        onClickLabel = "Seek to lyric",
+                    ) { viewModel.seekTo(line.timeMs) }
+                    .padding(vertical = AppTheme.small, horizontal = AppTheme.small),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.width(AppTheme.lyricsIndicatorWidth).height(AppTheme.lyricsIndicatorHeight)
+                    .graphicsLayer {
+                        alpha = emphasis
+                        scaleY = .45f + (.55f * emphasis)
+                    }.clip(AppTheme.pill).background(AppTheme.lime))
+                Spacer(Modifier.width(AppTheme.medium))
+                BasicText(
+                    line.text,
+                    modifier = Modifier.weight(1f).graphicsLayer {
                         scaleX = scale
                         scaleY = scale
-                        translationX = shift * shiftPx
-                    }.clip(AppTheme.card).background(glow)
-                    .border(AppTheme.hairline, rim, AppTheme.card)
-                    .clickable(role = Role.Button, onClickLabel = "Seek to lyric") { viewModel.seekTo(line.timeMs) }
-                    .padding(vertical = AppTheme.small, horizontal = AppTheme.small),
-                style = AppTheme.lyricsLine.copy(
-                    color = color,
-                    fontSize = fontSize.sp,
-                    lineHeight = lineHeight.sp,
-                    fontWeight = if (active) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
-                ),
-            )
+                        transformOrigin = TransformOrigin(0f, .5f)
+                    },
+                    style = AppTheme.lyricsLine.copy(
+                        color = color,
+                        fontSize = fontSize.sp,
+                        lineHeight = lineHeight.sp,
+                        fontWeight = if (active) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+                    ),
+                )
+            }
         }
     }
 }
