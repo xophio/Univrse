@@ -7,6 +7,7 @@ import com.universe.remote.data.local.RoomListeningRepository
 import com.universe.remote.data.local.TagDao
 import com.universe.remote.data.local.StatsDao
 import com.universe.remote.data.local.UniverseDatabase
+import com.universe.remote.data.local.LyricsDao
 import com.universe.remote.domain.ListeningRepository
 import dagger.Binds
 import dagger.Module
@@ -20,10 +21,13 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     @Provides @Singleton fun database(@ApplicationContext context: Context): UniverseDatabase =
-        Room.databaseBuilder(context, UniverseDatabase::class.java, "universe.db").build()
+        Room.databaseBuilder(context, UniverseDatabase::class.java, "universe.db")
+            .addMigrations(UniverseDatabase.MIGRATION_1_2)
+            .build()
     @Provides fun history(db: UniverseDatabase): HistoryDao = db.historyDao()
     @Provides fun tags(db: UniverseDatabase): TagDao = db.tagDao()
     @Provides fun stats(db: UniverseDatabase): StatsDao = db.statsDao()
+    @Provides fun lyrics(db: UniverseDatabase): LyricsDao = db.lyricsDao()
 }
 
 @Module

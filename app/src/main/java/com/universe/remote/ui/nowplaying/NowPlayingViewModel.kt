@@ -9,6 +9,10 @@ import androidx.palette.graphics.Palette
 import com.universe.remote.data.spotify.SpotifyConnectionManager
 import com.universe.remote.domain.PlayerController
 import com.universe.remote.domain.RepeatMode
+import com.universe.remote.domain.LyricsDocument
+import com.universe.remote.domain.LyricsRepository
+import com.universe.remote.domain.LyricsResult
+import com.universe.remote.domain.LyricsTrack
 import com.universe.remote.ui.theme.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -28,6 +33,7 @@ import kotlinx.coroutines.withContext
 class NowPlayingViewModel @Inject constructor(
     private val player: PlayerController,
     manager: SpotifyConnectionManager,
+    private val lyricsRepository: LyricsRepository,
 ) : ViewModel() {
     val playback = player.playback
     // Position is collected separately by the scrubber/progress line.
@@ -44,6 +50,9 @@ class NowPlayingViewModel @Inject constructor(
     val positionMs = _positionMs.asStateFlow()
     private val _coverTone = MutableStateFlow(AppTheme.background)
     val coverTone = _coverTone.asStateFlow()
+    private val lyricsRetry = MutableStateFlow(0L to null as String?)
+    private val _lyrics = MutableStateFlow<LyricsUiState>(LyricsUiState.Idle)
+    val lyrics = _lyrics.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -52,7 +61,7 @@ class NowPlayingViewModel @Inject constructor(
                 if (state.uri.isEmpty() || state.paused) return@collectLatest
                 val started = SystemClock.elapsedRealtime()
                 while (true) {
-                    delay(250)
+                    delay(AppTheme.playerPositionTickMs)
                     _positionMs.value = (state.positionMs + SystemClock.elapsedRealtime() - started)
                         .coerceIn(0, state.durationMs.coerceAtLeast(0))
                 }
@@ -68,6 +77,33 @@ class NowPlayingViewModel @Inject constructor(
                     rgb?.let { lerp(AppTheme.background, Color(it), AppTheme.coverToneBlend) } ?: AppTheme.background
                 }
             }
+        }
+        viewModelScope.launch {
+            var handledRetry = 0L
+            combine(
+                playback.map { state ->
+                    val id = state.uri.takeIf { it.startsWith("spotify:track:") }?.substringAfterLast(':')
+                    id?.let { LyricsTrack(it, state.title, state.artist, state.album, state.durationMs) }
+                }.distinctUntilChanged(),
+                lyricsRetry,
+            ) { track, retryRequest -> track to retryRequest }
+                .collectLatest { (track, retryRequest) ->
+                    if (track == null) {
+                        _lyrics.value = LyricsUiState.Idle
+                        return@collectLatest
+                    }
+                    _lyrics.value = LyricsUiState.Loading
+                    val forceRefresh = retryRequest.first > handledRetry && retryRequest.second == track.spotifyId
+                    if (forceRefresh) handledRetry = retryRequest.first
+                    _lyrics.value = try {
+                        when (val result = lyricsRepository.lyricsFor(track, refresh = forceRefresh)) {
+                            is LyricsResult.Found -> LyricsUiState.Ready(track.spotifyId, result.lyrics)
+                            LyricsResult.Missing -> LyricsUiState.Missing
+                        }
+                    } catch (_: Exception) {
+                        LyricsUiState.Error("Lyrics could not be loaded. Check your connection and try again.")
+                    }
+                }
         }
     }
 
@@ -92,4 +128,16 @@ class NowPlayingViewModel @Inject constructor(
         player.seek(target)
     }
     fun toggleLike() = player.toggleLike()
+    fun retryLyrics() {
+        val id = playback.value.uri.takeIf { it.startsWith("spotify:track:") }?.substringAfterLast(':')
+        lyricsRetry.value = lyricsRetry.value.first + 1 to id
+    }
+}
+
+sealed interface LyricsUiState {
+    data object Idle : LyricsUiState
+    data object Loading : LyricsUiState
+    data object Missing : LyricsUiState
+    data class Ready(val trackId: String, val document: LyricsDocument) : LyricsUiState
+    data class Error(val message: String) : LyricsUiState
 }

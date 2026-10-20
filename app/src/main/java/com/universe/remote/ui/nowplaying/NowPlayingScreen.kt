@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.universe.remote.domain.PlaybackState
 import com.universe.remote.domain.RepeatMode
 import com.universe.remote.ui.components.Label
+import com.universe.remote.ui.components.Pill
 import com.universe.remote.ui.home.HeartIcon
 import com.universe.remote.ui.home.HomeGrainOverlay
 import com.universe.remote.ui.home.PixelPlanet
@@ -60,9 +62,17 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit, modifi
     val connection by viewModel.connection.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var lyricsOpen by rememberSaveable { mutableStateOf(false) }
+    var lyricsFullScreen by rememberSaveable { mutableStateOf(false) }
     val background = remember(tone) { Brush.verticalGradient(listOf(tone, AppTheme.background, AppTheme.background)) }
-    BackHandler(onBack = onClose)
-    Box(modifier.fillMaxSize().background(background).pointerInput(onClose) {
+    BackHandler {
+        when {
+            lyricsFullScreen -> lyricsFullScreen = false
+            lyricsOpen -> lyricsOpen = false
+            else -> onClose()
+        }
+    }
+    Box(modifier.fillMaxSize().background(background).pointerInput(onClose, lyricsOpen) {
         val threshold = AppTheme.nowDismissDistance.toPx()
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
@@ -72,7 +82,11 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit, modifi
                 val change = event.changes.firstOrNull { it.id == down.id } ?: break
                 end = change.position
             } while (change.pressed)
-            if (end.y - down.position.y > threshold && abs(end.x - down.position.x) < threshold) onClose()
+            val vertical = end.y - down.position.y
+            if (!lyricsOpen && abs(end.x - down.position.x) < threshold) {
+                if (vertical > threshold) onClose()
+                else if (vertical < -threshold) lyricsOpen = true
+            }
         }
     }) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState())
@@ -109,6 +123,8 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit, modifi
                 Scrubber(state, viewModel)
                 Spacer(Modifier.height(AppTheme.large))
                 PlayerControls(state, viewModel)
+                Spacer(Modifier.height(AppTheme.large))
+                Pill("Lyrics ↑", Modifier.fillMaxWidth(), onClick = { lyricsOpen = true })
                 if (error != null) Label(error!!, AppTheme.caption.copy(color = AppTheme.error),
                     Modifier.fillMaxWidth().padding(top = AppTheme.medium))
                 val trackId = state.uri.takeIf { it.startsWith("spotify:track:") }?.substringAfterLast(':')
@@ -125,6 +141,15 @@ fun NowPlayingScreen(viewModel: NowPlayingViewModel, onClose: () -> Unit, modifi
             Spacer(Modifier.height(AppTheme.large))
         }
         HomeGrainOverlay(Modifier.matchParentSize())
+        LyricsOverlay(
+            visible = lyricsOpen,
+            fullScreen = lyricsFullScreen,
+            viewModel = viewModel,
+            onClose = {
+                if (lyricsFullScreen) lyricsFullScreen = false else lyricsOpen = false
+            },
+            onToggleFullScreen = { lyricsFullScreen = !lyricsFullScreen },
+        )
     }
 }
 

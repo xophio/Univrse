@@ -12,6 +12,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "tracks")
@@ -62,6 +64,26 @@ data class TrackNoteEntity(
     @PrimaryKey @ColumnInfo(name = "track_id") val trackId: String,
     val note: String,
 )
+
+@Entity(tableName = "lyrics_cache")
+data class LyricsEntity(
+    @PrimaryKey @ColumnInfo(name = "track_id") val trackId: String,
+    @ColumnInfo(name = "synced_lyrics") val syncedLyrics: String?,
+    @ColumnInfo(name = "plain_lyrics") val plainLyrics: String?,
+    val instrumental: Boolean,
+    @ColumnInfo(name = "lrclib_id") val lrclibId: Long?,
+    val missing: Boolean,
+    @ColumnInfo(name = "fetched_at") val fetchedAt: Long,
+)
+
+@Dao
+interface LyricsDao {
+    @Query("SELECT * FROM lyrics_cache WHERE track_id = :trackId LIMIT 1")
+    suspend fun find(trackId: String): LyricsEntity?
+
+    @Upsert
+    suspend fun upsert(lyrics: LyricsEntity)
+}
 
 data class PlayHistoryRow(
     val id: Long,
@@ -119,9 +141,18 @@ interface TagDao {
 }
 
 @Database(entities = [TrackEntity::class, PlayLogEntity::class, TagEntity::class,
-    TrackTagEntity::class, TrackNoteEntity::class], version = 1, exportSchema = true)
+    TrackTagEntity::class, TrackNoteEntity::class, LyricsEntity::class], version = 2, exportSchema = true)
 abstract class UniverseDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun tagDao(): TagDao
     abstract fun statsDao(): StatsDao
+    abstract fun lyricsDao(): LyricsDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""CREATE TABLE IF NOT EXISTS `lyrics_cache` (`track_id` TEXT NOT NULL, `synced_lyrics` TEXT, `plain_lyrics` TEXT, `instrumental` INTEGER NOT NULL, `lrclib_id` INTEGER, `missing` INTEGER NOT NULL, `fetched_at` INTEGER NOT NULL, PRIMARY KEY(`track_id`))""")
+            }
+        }
+    }
 }

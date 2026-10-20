@@ -129,6 +129,15 @@ object AppTheme {
     val scrubberTrack = 4.dp
     val scrubberThumb = 7.dp
     val nowPlanet = 58.dp
+    val lyricsSheet = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val lyricsHandleWidth = 38.dp
+    val lyricsHandleHeight = 4.dp
+    val lyricsLineSpacing = 18.dp
+    val lyricsCreditBottom = 10.dp
+    val lyricsCurrent = TextStyle(fontFamily = bodyFont, fontWeight = FontWeight.Bold,
+        fontSize = 22.sp, lineHeight = 28.sp, color = lime)
+    val lyricsLine = TextStyle(fontFamily = bodyFont, fontSize = 17.sp,
+        lineHeight = 24.sp, color = muted)
     val tagSwatch = 24.dp
     val tagChipHeight = 38.dp
     val tagAddIcon = 15.dp
@@ -180,6 +189,11 @@ object AppTheme {
     const val searchSweepMs = 900
     const val menuOpenMs = 190
     const val menuInitialScale = 0.84f
+    const val lyricsPanelFraction = 0.68f
+    const val lyricsSheetMs = 300
+    const val lyricsLineTransitionMs = 360
+    const val lyricsSyncLeadMs = 90L
+    const val playerPositionTickMs = 80L
     val searchEntranceOffset = 14.dp
     const val coverToneBlend = 0.35f
 }
