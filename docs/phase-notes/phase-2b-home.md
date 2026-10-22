@@ -4,7 +4,7 @@ The app now opens the Web API login screen only when the saved session is absent
 
 ## Manual setup
 
-Keep the Phase 2a `spotify.properties` and [Spotify dashboard configuration](PHASE-2A.md). If you open the source ZIP on a different machine, copy `spotify.properties.example` to `spotify.properties` and paste your client ID and exact registered redirect URI. Register that machine's signing SHA-1 if needed. Install the Spotify app and sign in on the phone.
+Keep the Phase 2a `spotify.properties` and [Spotify dashboard configuration](phase-2a-web-login.md). If you open the source ZIP on a different machine, copy `spotify.properties.example` to `spotify.properties` and paste your client ID and exact registered redirect URI. Register that machine's signing SHA-1 if needed. Install the Spotify app and sign in on the phone.
 
 Gradle adds Coil 2.7.0 `coil-compose`; sync Gradle with network access. This release is compatible with the project's existing Hilt/Kotlin toolchain. Coil downloads album covers from HTTPS Spotify image URLs. There is no new font download: `app/src/main/res/font/silkscreen.ttf` is already bundled with its SIL Open Font License under `licenses/`.
 

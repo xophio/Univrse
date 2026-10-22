@@ -3,7 +3,7 @@
 - Final `assembleDebug`, `testDebugUnitTest`, and `lintDebug` passed on October 17, 2026. Six JVM tests passed; lint reported no errors.
 - Installed the final APK on the connected Android phone and inspected a screenshot of the Home screen. The saved session opened Home and displayed real playlist names/counts, liked songs, and artwork. The static planet, next-card peek, bell, lime hearts, and floating navigation rendered.
 - The three Phase 1 App Remote implementation files match their saved SHA-256 hashes; no code in `data/auth/` was edited for Phase 2b.
-- Playlist Play and shuffle taps, offline/error states, logout/relogin, and a fresh Web API login were not exercised during this verification; use the [Phase 2b checklist](PHASE-2B.md) on the phone.
+- Playlist Play and shuffle taps, offline/error states, logout/relogin, and a fresh Web API login were not exercised during this verification; use the [Phase 2b checklist](phase-notes/phase-2b-home.md) on the phone.
 - No auth tokens, `spotify.properties`, or `local.properties` are included in the Phase 2b source ZIP. The debug APK uses the existing locally configured public client ID and redirect URI.
 
 ## Earlier Phase 2a verification
@@ -15,4 +15,4 @@
 - Phone reported a saved Web API session; initial playlist fetch failed. The latest build distinguishes DNS/network, timeout and TLS errors. A successful live playlist fetch and real expiry refresh remain unverified.
 - No auth tokens or private properties are included in the source ZIP. The debug APK uses the existing locally configured public client ID/redirect URI.
 
-See PHASE-2A.md for the earlier login setup and testing.
+See [Phase 2a](phase-notes/phase-2a-web-login.md) for the earlier login setup and testing.
