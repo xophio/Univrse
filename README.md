@@ -1,97 +1,95 @@
-# Universe — Phase 5
+# Univrse
 
-Start with [PHASE-5.md](PHASE-5.md) for Search, Library, and Stats setup and test steps.
+An Android Spotify remote with a custom pixel-art interface, local listening insights, and synced lyrics. Spotify continues to own audio playback; Univrse provides the control surface.
 
-# Universe — Phase 4
+<!-- Screenshot or GIF placeholder: add docs/images/univrse-home.png. -->
 
-Start with [PHASE-4.md](PHASE-4.md) for local play logging, mood tags, notes, and the temporary history screen.
+## Highlights
 
-# Universe — Phase 3
+- Spotify App Remote playback controls and live player state
+- Spotify Web API login with PKCE, playlists, liked songs, and search
+- Custom Jetpack Compose UI: pixel planets, motion, dock, and Now Playing
+- Room-backed listening history, mood tags, library filtering, and stats
+- LRCLIB-powered synced lyrics cached for offline repeat playback
 
-Start with [PHASE-3.md](PHASE-3.md) for the mini player and Now Playing setup and test steps. Earlier phase notes remain below.
+## Tech stack
 
-# Universe — Phase 2b
+Kotlin, Jetpack Compose, Coroutines and Flow, Hilt, Room, Retrofit/OkHttp, Coil, Palette, Spotify Android App Remote SDK, Spotify Auth, and LRCLIB.
 
-Start with [PHASE-2B.md](PHASE-2B.md) for the current Home screen setup and test instructions. The Phase 2a login notes are in [PHASE-2A.md](PHASE-2A.md); the original Phase 1 setup below is retained for reference.
+## Prerequisites
 
-# Universe — Phase 1
+- Android Studio Panda 4 or newer with its bundled JDK 21
+- Android SDK Platform 37
+- An Android device or emulator running Android 8.0 (API 26) or later
+- The Spotify app installed and signed in on the test device
+- A Spotify developer app configured for package `com.universe.remote`
 
-Native Kotlin + Jetpack Compose Spotify remote. Audio is played by the installed Spotify app. This phase contains project setup, design tokens, a real App Remote connection, one fixed test-track action, live player state, album artwork, and playback controls. No Material 3 components are used (the XML launch theme is a platform window theme).
+## Setup
 
-## Open and configure
+1. Clone the repository and open it in Android Studio.
+2. Copy `spotify.properties.example` to `spotify.properties` in the repository root.
+3. Set `clientId` to your Spotify dashboard client ID. Keep `redirectUri` aligned with the redirect URI registered in Spotify's dashboard.
+4. Register the debug signing SHA-1 in Spotify's dashboard. Run `./gradlew.bat :app:signingReport` on Windows to obtain it.
+5. Sync Gradle, connect a device with Spotify installed, and run the `app` configuration.
 
-1. Open this `Universe` folder in Android Studio with support for AGP 9.2.1 (Panda 4 or newer). Use the bundled JDK 21 / Gradle JDK; Java source and bytecode target 17. Install Android SDK Platform 37 through SDK Manager. Minimum device Android version is 8.0 / API 26. Gradle 9.4.1 wrapper is included. AGP 9 uses built-in Kotlin; do not add `org.jetbrains.kotlin.android`.
-2. Copy `spotify.properties.example` to **`spotify.properties` in this root folder**. Paste your Spotify dashboard client ID into `clientId`. `redirectUri=universe-remote://callback` is an example placeholder URI; register that exact value or replace it with your own and use the same value in the dashboard. Never put a client secret in the app. Rebuild after changing properties. Client IDs are public identifiers.
-3. In the [Spotify developer dashboard](https://developer.spotify.com/dashboard), create/configure an app for the Android SDK. Register package **`com.universe.remote`**, your signing certificate SHA-1, and the redirect URI. Run `gradlew.bat :app:signingReport` to find the debug SHA-1. Register the release certificate separately when applicable. Add your test account under dashboard user access if required for your app mode.
-4. Install Spotify on the test device, open it and sign in. Use an account with on-demand playback for the hardcoded-track test. The app checks SDK user capabilities and disables that action if unsupported.
-5. Sync Gradle and run `app`. Accept Spotify's remote-control authorization. Tap **Play test track**. Connection does not start or resume music automatically. Change `ConnectionViewModel.TEST_TRACK` to another track URI if it is unavailable in your market.
+`spotify.properties` is ignored intentionally. Never put a Spotify client secret in the Android app.
 
-Windows build:
+### Configuration
+
+| File | Key | Purpose |
+| --- | --- | --- |
+| `spotify.properties` | `clientId` | Spotify public client ID |
+| `spotify.properties` | `redirectUri` | Registered PKCE redirect URI |
+
+Start from [`spotify.properties.example`](spotify.properties.example). This Android project does not load a `.env` file.
+
+## Build and verify
+
+From PowerShell:
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
-./gradlew.bat :app:assembleDebug :app:lintDebug
+./gradlew.bat :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 ```
 
-Use Android Studio to create `local.properties` with your SDK path, or set `ANDROID_HOME`. On macOS/Linux, run `chmod +x gradlew` then `./gradlew :app:assembleDebug`.
+For a release-like performance build:
 
-## SDK, manifest and authentication setup
+```powershell
+./gradlew.bat :app:assemblePerformance
+```
 
-- **AAR already included:** `app/libs/spotify-app-remote-release-0.8.0.aar`, from the [official SDK repository](https://github.com/spotify/android-sdk/tree/master/app-remote-lib). `app/build.gradle.kts` references this exact filename and adds Gson explicitly. If restoring it manually, download that version from Spotify's repository/releases and place it at this path. Do not add a second imported SDK module.
-- `AndroidManifest.xml` declares Internet permission, Spotify package visibility, the Hilt application and the exported launcher activity. No playback service, audio focus management, or notification permission is needed in this remote UI.
-- Phase 1 uses App Remote's built-in `showAuthView(true)` consent. Its callback belongs to Spotify's flow; this phase does not implement an OAuth redirect receiver or Web API token storage. [Spotify's getting-started guide](https://developer.spotify.com/documentation/android/tutorials/getting-started) documents this flow.
-- **PKCE, Retrofit and Web API login are Phase 2.** App Remote consent does not supply a Web API access token. Phase 2 will add its separate redirect receiver, verifier/state checks, token exchange and refresh. No client secret will be used. No restricted audio-features or recommendations endpoints are called.
-- Silkscreen is included under the SIL Open Font License; see `licenses/Silkscreen-OFL.txt`. Spotify's SDK is governed by its own developer terms; see the official repository and `licenses/Spotify-SDK-LICENSE.txt`.
+On macOS or Linux, make the wrapper executable once with `chmod +x gradlew`, then run `./gradlew` in the commands above.
 
-## Source map
+## Project structure
 
 ```text
-app/src/main/java/com/universe/remote/
-  UniverseApplication.kt                 Hilt application
-  MainActivity.kt                        onStart/onStop ownership, one NavHost
-  data/spotify/
-    SpotifyConnectionManager.kt          Singleton SDK owner; state, art, capability flows
-    SpotifyPlayerController.kt           Playback wrapper and domain-state mapping
-    SpotifyBindingContext.kt             Android 14+ consent opt-in and pending-bind cleanup
-  domain/
-    PlayerController.kt                  UI-independent contract and models
-  di/
-    PlaybackModule.kt                    Singleton player binding
-  ui/
-    theme/AppTheme.kt                    Colors, fonts, dimensions and shapes
-    components/Controls.kt               Foundation buttons and text
-    components/GrainBackground.kt        Cached, deterministic film grain
-    connection/ConnectionViewModel.kt    Screen actions, test-track URI
-    connection/ConnectionScreen.kt       Phase 1 connection/playback test surface
+app/
+  src/main/java/com/universe/remote/
+    data/       Spotify, Room, lyrics, and network implementations
+    domain/     UI-independent models and repository contracts
+    di/         Hilt modules
+    ui/         Compose screens, components, and theme
+  src/test/     Unit tests
+  schemas/      Room migration schemas
+docs/
+  phase-notes/  Historical implementation notes by phase
+  performance.md
+  validation.md
+exports/        Project logo source and exported logo
+licenses/       Third-party license notices
 ```
 
-`SpotifyConnectionManager.playerState` is a `StateFlow<PlayerState?>` (and therefore a Flow). Null means disconnected/no state yet. The wrapper exposes immutable `PlaybackState` to the UI. It supports play, pause, resume, next, previous, seek, shuffle, repeat and respects Spotify's current playback restrictions. Repeat values match the SDK: off 0, track 1, context 2.
+## Documentation
 
-The manager keeps only application context, cancels its subscription and disconnects in `onStop`, and invalidates stale callbacks using a session generation. The main thread serializes lifecycle and SDK callback handling. A new `onStart` reconnects. Returning from Spotify authorization may require a retry if Spotify rejected the prior connection. Disconnection never pauses Spotify audio. Failures provide recovery instructions; unsupported on-demand playback is a capability result, not a guessed connection error.
+- [Phase notes](docs/phase-notes/)
+- [Performance notes](docs/performance.md)
+- [Validation notes](docs/validation.md)
+- [Spotify setup sample](spotify.properties.example)
 
-Album artwork is fetched with the App Remote Images API and displayed with `ContentScale.Fit`; there is no crop, tint or stretch. Coil will handle Web API image URLs in Phase 2. Displayed position is the last SDK event position, labelled accordingly, not a fabricated continuously ticking clock.
+## What I learned / next steps
 
-## Test this phase on your device
+This project explores lifecycle-safe playback state, PKCE on Android, local-first listening data, Compose performance, and a custom visual system without Material components. Potential next steps include broader device testing, a screenshot or GIF in this README, and release signing for a distributable build.
 
-1. Before entering credentials: setup-required screen; playback disabled; no crash.
-2. With credentials but Spotify missing: install guidance and Play Store link.
-3. With Spotify signed out: sign-in/recovery message or Spotify login UI; return and retry.
-4. Authorize: connected state, account capability result, current track and metadata.
-5. Play test track: Spotify audio and state updates. Pause/resume, previous/next, seek +15s, shuffle and repeat work when enabled. Restrictions disable unsupported controls; failures stay visible.
-6. Open in Spotify: current track opens; return to reconnect. Unavailable tracks report failure without claiming playback succeeded.
-7. Home/background, return, rotate repeatedly: no stale metadata after disconnect, no duplicate active subscription; audio remains owned by Spotify.
-8. Deny authorization, turn off networking or force-stop Spotify while connected: a recoverable error appears; retry after fixing the cause.
-9. With a non-on-demand account: test-track action stays disabled and explains the requirement. Do not infer account tier from a generic network error.
-10. Large system font and small screen: all controls remain reachable by scrolling; buttons have at least 48dp targets. Album art preserves aspect ratio.
+## License
 
-## Phase boundaries
-
-Stop here for testing. Phase 2 adds PKCE/Web API, Coil, static Canvas planet, avatar/notification header, playlist carousel, track rows and floating Home/Stats/Library navigation. Phase 3 adds the mini player and Now Playing. Phase 4 adds Room logs/tags. Phase 5 adds search/library/stats. Phase 6 adds animations and Palette transitions, with a reduce-animations setting. Phase 7 adds smart playlists, sleep timer and row gestures.
-
-There are no running animations in Phase 1. StateFlows, isolated components and cached grain drawing support later animation work; no random generation or collection allocation occurs in the grain draw callback. Room, Retrofit, Coil and Palette dependencies will be added with the phase that uses them.
-
-## Connection fix
-
-On Android 14+, Spotify App Remote 0.8.0 needs the BIND_ALLOW_ACTIVITY_STARTS service-binding flag to display its built-in authorization screen. SpotifyBindingContext applies this only to the explicit Spotify protocol service, and closes pending bindings on timeout or onStop. The SDK calls getApplicationContext internally, so this application-context adapter returns itself. No Activity reference is retained. Verified on the connected device: connected, on-demand capable, track state PLAYING.
-
-
+Licensed under the [MIT License](LICENSE). Spotify services and the bundled SDK remain subject to Spotify's terms.

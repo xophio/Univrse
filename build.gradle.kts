@@ -4,3 +4,5 @@ plugins {
     id("com.google.devtools.ksp") version "2.3.12" apply false
     id("com.google.dagger.hilt.android") version "2.59.2" apply false
 }
+
+description = "A custom Android Spotify remote built with Kotlin and Jetpack Compose."

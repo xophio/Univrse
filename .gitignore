@@ -1,6 +1,32 @@
+# Gradle and Android build output
 .gradle/
 .kotlin/
-.idea/
 **/build/
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Local Android and Spotify configuration
 local.properties
 spotify.properties
+.env
+.env.*
+!.env.example
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Operating system and logs
+.DS_Store
+Thumbs.db
+*.log
+
+# Common tooling artifacts
+node_modules/
+dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
