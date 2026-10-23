@@ -2,7 +2,7 @@
 
 A native Android Spotify remote built with Kotlin and Jetpack Compose. Audio plays through the installed Spotify app, and Universe is a custom, animated interface on top of it.
 
-![Universe screenshot](docs/images/your-screenshot.png)
+![Universe home screen](docs/images/home.jpeg)
 
 ## Features
 - Live player state with album artwork and playback controls
